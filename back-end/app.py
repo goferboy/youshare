@@ -1,12 +1,19 @@
 from flask import Flask, jsonify, g;
 from flask_cors import CORS;
 from playhouse.shortcuts import model_to_dict;
+from flask_socketio import SocketIO;
 
 import models;
 from blueprints.sessions import session;
 
 DEBUG = True;
-PORT = 8000;
+
+from dotenv import load_dotenv;
+load_dotenv();
+
+import os;
+PORT = os.getenv("PORT");
+SECRET = os.getenv("SECRET");
 
 app = Flask(__name__);
 
