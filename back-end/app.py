@@ -34,10 +34,21 @@ def after_request(response):
     g.db.close();
     return response;
 
+connected_users = 0;
+
 @socketio.on('connection')
 def on_connection(json):
+    global connected_users;
+    connected_users += 1;
     print('received json: ' + str(json));
+    print('Connected Users: ' + str(connected_users));
     emit('connection', json);
+
+@socketio.on('disconnect')
+def on_disconnection():
+    global connected_users;
+    connected_users -= 1;
+    print('Connected Users: ' + str(connected_users));
 
 @socketio.on('join')
 def on_join(data):

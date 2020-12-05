@@ -11,7 +11,6 @@ socket.on('connect', () => {
   });
 });
 
-
 try {
   fetch('http://localhost:8000/api/sessions').then((res) => {
     return res.json();
