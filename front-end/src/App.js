@@ -3,12 +3,14 @@ import io from 'socket.io-client';
 import './App.css';
 
 const socket = io('http://localhost:8000');
+
 socket.on('connect', () => {
   socket.emit('connection', {data: "HELLOOOOO"});
   socket.on('connection', (res) => {
     console.log(res);
-  })
+  });
 });
+
 
 try {
   fetch('http://localhost:8000/api/sessions').then((res) => {
@@ -22,10 +24,15 @@ catch(err) {
 }
 
 class App extends Component {
+  joinRoom = () => {
+    socket.emit('join', {username: "henry", room: "test"});
+    socket.on('join', (res) => {console.log(res)}); 
+  };
+
   render() {
     return (
       <div className="App">
-        <p>Hello</p>
+        <button onClick={this.joinRoom}>Join Room??</button>
       </div>
     );
   }

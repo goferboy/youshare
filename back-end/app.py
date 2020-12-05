@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, g;
 from flask_cors import CORS;
 from playhouse.shortcuts import model_to_dict;
-from flask_socketio import SocketIO, send, emit, join_room;
+from flask_socketio import SocketIO, send, emit, join_room, leave_room;
 
 import models;
 from blueprints.sessions import session;
@@ -35,15 +35,25 @@ def after_request(response):
     return response;
 
 @socketio.on('connection')
-def handle_my_custom_event(json):
+def on_connection(json):
     print('received json: ' + str(json));
     emit('connection', json);
 
-# @socketio.on('itsme')
-# def send_back():
-#     print("sending something back now");
-    
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    room = data['room']
+    join_room(room);
+    print(data);
+    emit('join', username + ' has entered the room.', room=room)
 
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room);
+    print(data);
+    send(username + ' has left the room.', room=room)
 
 if __name__ == '__main__':
     models.initialize();
