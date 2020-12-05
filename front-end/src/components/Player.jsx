@@ -6,7 +6,14 @@ class Player extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            queue: []
+            queue: [],
+            opts: {
+                height: '390',
+                width: '640',
+                playerVars: {
+                    autoplay: 1
+                }
+            }
         };
     };
 
@@ -18,9 +25,32 @@ class Player extends Component {
         });
     };
 
+    nextVideo = (event) => {
+        let queueBuffer = [...this.state.queue];
+        queueBuffer = queueBuffer.slice(1);
+        this.setState({
+            queue: queueBuffer
+        });
+        event.target.playVideo();
+    }
+
+    _onReady = (event) => {
+        event.target.playVideo();
+    };
+
     render() {
         return (
             <div className="player">
+                <div className="video">
+                    <YouTube
+                        videoId={
+                            (!Array.isArray(this.state.queue) || !this.state.queue.length) ? "" : this.state.queue[0].id.videoId
+                        }
+                        opts={this.state.opts}
+                        onReady={this._onReady}
+                        onEnd={this.nextVideo}
+                    />
+                </div>
                 <div className="queue">
                     <ol>
                         {
