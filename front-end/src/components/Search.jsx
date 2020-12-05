@@ -2,11 +2,10 @@ import React, { Component } from 'react';
 //import io from 'socket.io-client';
 //import { BrowserRouter as Router, Route, Link, Switch, } from 'react-router-dom';
 
-class Playlist extends Component {
+class Search extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            playlist: [],
             query: '',
             searchResults: []
         }
@@ -23,15 +22,6 @@ class Playlist extends Component {
                 searchResults: data.items
             });
         })
-    }
-
-    addToQueue = (result) => {
-        const playlistBuffer = [...this.state.playlist];
-        playlistBuffer.push(result);
-        console.log(playlistBuffer);
-        this.setState({
-            playlist: playlistBuffer
-        });
     }
 
     handleChange = (event) =>
@@ -55,32 +45,16 @@ class Playlist extends Component {
                                         <li>
                                             <img src={result.snippet.thumbnails.default.url} />
                                             <p>{result.snippet.title}</p>
-                                            <button onClick={()=> this.addToQueue(result)}>+</button>
+                                            <button onClick={()=> this.props.addToQueue(result)}>+</button>
                                         </li>
                                     </div>
                                 );
                             })
                         }
                     </ul>
-                <div className="queue">
-                    <ol>
-                        {
-                            this.state.playlist.map((item) => {
-                                return (
-                                    <div className="playlist-item" id={item.id.videoId}>
-                                        <li>
-                                            <img src={item.snippet.thumbnails.default.url} />
-                                            <p>{item.snippet.title}</p>
-                                        </li>
-                                    </div>
-                                );
-                            })
-                        }
-                    </ol>
-                </div>
             </div>
         );
     }
 }
 
-export default Playlist;
+export default Search;

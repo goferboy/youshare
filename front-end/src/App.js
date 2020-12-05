@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 //import { BrowserRouter as Router, Route, Link, Switch, } from 'react-router-dom';
 import './App.css';
-import Playlist from './components/Playlist.jsx';
+import Player from './components/Player.jsx';
 
 
 //
@@ -62,7 +62,7 @@ class App extends Component {
           onChange={this.handleChange} 
           required />
         <button onClick={this.joinRoom}>Submit Username</button>
-        <Playlist />
+        <Player />
       </div>
     );
   }
