@@ -17,15 +17,18 @@ class Player extends Component {
             },
             playerState: 0
         };
-    };
-
-    addToQueue = (result) => {
-        const queueBuffer = [...this.state.queue];
-        queueBuffer.push(result);
-        this.setState({
-            queue: queueBuffer
+        this.props.socket.on('playlist', (res) => {
+            let queueBuffer = [...this.state.queue];
+            queueBuffer.push(res);
+            this.setState({
+                queue: queueBuffer
+            });
         });
     };
+
+    broadcastToQueue = (result) => {
+        this.props.socket.emit('playlist', {username: this.props.username, video: result});
+    }
 
     nextVideo = (event) => {
         let queueBuffer = [...this.state.queue];
@@ -64,8 +67,9 @@ class Player extends Component {
             nextVideoID = null;
         }
         else {
-            nextVideoID = this.state.queue[0].id.videoId
+            nextVideoID = this.state.queue[0].video.id.videoId
         };
+        
         return (
             <div className="player">
                 <div className="video">
@@ -84,10 +88,11 @@ class Player extends Component {
                         {
                             this.state.queue.map((item) => {
                                 return (
-                                    <div className="queue-item" id={item.id.videoId}>
+                                    <div className="queue-item" id={item.video.id.videoId}>
                                         <li>
-                                            <img src={item.snippet.thumbnails.default.url} />
-                                            <p>{item.snippet.title}</p>
+                                            <img src={item.video.snippet.thumbnails.default.url} />
+                                            <p>{item.video.snippet.title}</p>
+                                            <p>from {item.username}</p>
                                         </li>
                                     </div>
                                 );
@@ -95,10 +100,10 @@ class Player extends Component {
                         }
                     </ol>
                 </div>
-                <Search addToQueue={this.addToQueue}/>
+                <Search addToQueue={this.broadcastToQueue}/>
             </div>
         );
     }
-};
+}
 
 export default Player;

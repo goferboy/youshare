@@ -2,68 +2,59 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 //import { BrowserRouter as Router, Route, Link, Switch, } from 'react-router-dom';
 import './App.css';
-import Player from './components/Player.jsx';
+import PlayerWithSocket from './components/Player.jsx';
 
-
-//
-// socket.on('connect', () => {
-//   socket.emit('connection', {data: "HELLOOOOO"});
-//   socket.on('connection', (res) => {
-//     console.log(res);
-//   });
-// });
-
-// try {
-//   fetch('http://localhost:8000/api/sessions').then((res) => {
-//     return res.json();
-//   }).then((data) => {
-//     console.log(data);
-//   });
-// }
-// catch(err) {
-//   console.log(err);
-// }
-
-
+const socket = io('http://localhost:8000');
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       username: '',
-      //room: ''
+      enteredRoom: false
     }
   }
-
+  
   handleChange = (event) =>
   this.setState({
     [event.target.name]: event.target.value
   });
-
-  // joinRoom = () => {
-  //   const socket = io('http://localhost:8000');
-  //   socket.on('connect', () => {
-  //     socket.emit('connection', {data: "HELLOOOOO"});
-  //     socket.on('connection', (res) => {
-  //       console.log(res);
-  //     });
-  //     socket.emit('join', {username: this.state.username, room: this.state.room});
-  //     socket.on('join', (res) => {console.log(res)}); 
-  //   });
-  // };
+  
+  join = () => {
+    try {
+      // socket.on('connect', () => {
+        socket.emit('connection', {username: this.state.username}, (res) => {
+          console.log(res);
+        });
+      // });
+      this.setState({
+        enteredRoom: true
+      })
+    }
+    catch(err) {
+      console.log(err)
+    }
+  };
 
   render() {
     return (
-      <div className="App">
-        <input 
-          type="text" 
-          name="username" 
-          placeholder="Enter a name" 
-          onChange={this.handleChange} 
-          required />
-        <button onClick={this.joinRoom}>Submit Username</button>
-        <Player />
-      </div>
+        <div className="App">
+          {
+            this.state.enteredRoom
+            ? <PlayerWithSocket username={this.state.username} socket={socket}/>
+            :
+              <div className="sign-in">
+                <input 
+                  type="text" 
+                  name="username" 
+                  placeholder="Enter a name" 
+                  onChange={this.handleChange} 
+                  required 
+                />
+                <button onClick={this.join}>Submit Username</button>
+              </div>
+          }
+        </div>
     );
   }
 }

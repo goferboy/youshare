@@ -42,7 +42,7 @@ def on_connection(json):
     connected_users += 1;
     print('received json: ' + str(json));
     print('Connected Users: ' + str(connected_users));
-    emit('connection', json);
+    return json;
 
 @socketio.on('disconnect')
 def on_disconnection():
@@ -50,21 +50,26 @@ def on_disconnection():
     connected_users -= 1;
     print('Connected Users: ' + str(connected_users));
 
-@socketio.on('join')
-def on_join(data):
-    username = data['username']
-    room = data['room']
-    join_room(room);
-    print(data);
-    emit('join', username + ' has entered the room.', room=room)
+@socketio.on('playlist')
+def on_playlist(json):
+    emit('playlist', json, broadcast=True)
 
-@socketio.on('leave')
-def on_leave(data):
-    username = data['username']
-    room = data['room']
-    leave_room(room);
-    print(data);
-    send(username + ' has left the room.', room=room)
+
+# @socketio.on('join')
+# def on_join(data):
+#     username = data['username']
+#     room = data['room']
+#     join_room(room);
+#     print(data);
+#     emit('join', username + ' has entered the room.', room=room)
+
+# @socketio.on('leave')
+# def on_leave(data):
+#     username = data['username']
+#     room = data['room']
+#     leave_room(room);
+#     print(data);
+#     send(username + ' has left the room.', room=room)
 
 if __name__ == '__main__':
     models.initialize();
