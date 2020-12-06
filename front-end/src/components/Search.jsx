@@ -14,7 +14,7 @@ class Search extends Component {
     searchResults = () => {
         console.log(this.state.query);
         fetch('https://youtube.googleapis.com/youtube/v3/search?part=id,snippet&q=' 
-        + this.state.query + '&maxResults=5&key=' 
+        + this.state.query + '&maxResults=5&type=video&videoEmbeddable=true&key=' 
         + process.env.REACT_APP_API_KEY).then((res) => {
             return res.json();
         }).then((data) => {

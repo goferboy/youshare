@@ -11,9 +11,11 @@ class Player extends Component {
                 height: '390',
                 width: '640',
                 playerVars: {
-                    autoplay: 1
+                    autoplay: 1,
+                    controls: 0
                 }
-            }
+            },
+            playerState: 0
         };
     };
 
@@ -31,25 +33,54 @@ class Player extends Component {
         this.setState({
             queue: queueBuffer
         });
-        event.target.playVideo();
+        if (queueBuffer.length)
+            event.target.playVideo();
+        else {
+            event.target.stopVideo();
+            this.setState({
+                playerState: 0
+            })
+        };
     }
 
-    _onReady = (event) => {
-        event.target.playVideo();
-    };
+    playPause = () => {
+        if (this.state.playerState === 1)
+            this.setState({
+                playerState: 2
+            });
+        else if (this.state.playerState === 2)
+            this.setState({
+                playerState: 1
+            });
+        }
+
+    onError = (event) => {
+        console.log("Error loading video: " + event.data)
+        this.nextVideo(event);
+    }
 
     render() {
+        let nextVideoID;
+        if (!Array.isArray(this.state.queue) || !this.state.queue.length) {
+            nextVideoID = 0;
+        }
+        else {
+            nextVideoID = this.state.queue[0].id.videoId
+        };
         return (
             <div className="player">
                 <div className="video">
                     <YouTube
-                        videoId={
-                            (!Array.isArray(this.state.queue) || !this.state.queue.length) ? "" : this.state.queue[0].id.videoId
-                        }
+                        id="YouTube-Video"
+                        videoId={nextVideoID}
                         opts={this.state.opts}
-                        onReady={this._onReady}
                         onEnd={this.nextVideo}
+                        onPlay={() => this.setState({ playerState: 1})}
+                        onPause={() => this.setState({ playerState: 2})}
+                        onStateChange={() => this.state.playerState}
+                        onError={this.onError}
                     />
+                    <button type="button" onClick={this.playPause}>Play/Pause</button>
                 </div>
                 <div className="queue">
                     <ol>
