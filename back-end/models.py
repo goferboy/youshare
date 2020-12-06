@@ -45,7 +45,6 @@ class Session(Model):
         }
     ];
     created_at = DateTimeField(default = datetime.datetime.now);
-    created_at2 = DateTimeField(default = 0);
 
     class Meta:
         database = DATABASE;

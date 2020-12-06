@@ -20,7 +20,8 @@ def find_session(room):
     try: 
         found = models.Session.get_or_none(models.Session.room_name == room);
         if found:
-            return jsonify(data=sessions, status={"code": 200, "message": f"Retrived Session Room {room}"});
+            session = model_to_dict(models.Session.get(models.Session.room_name == room));
+            return jsonify(data=session, status={"code": 200, "message": f"Retrived Session Room {room}"});
         else:
             return jsonify(data={}, status={"code": 404, "message": f"Room {room!r} Not Found"});
     except models.DoesNotExist:

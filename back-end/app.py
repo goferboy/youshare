@@ -20,7 +20,7 @@ app = Flask(__name__);
 app.config['SECRET_KEY'] = SECRET;
 socketio = SocketIO(app, cors_allowed_origins="*");
 
-CORS(app, origins=['http://localhost:3000'], supports_credentials=True);
+CORS(app, origins=['http://localhost:3000']);
 
 app.register_blueprint(session, url_prefix="/api/sessions");
 
