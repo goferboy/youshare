@@ -1,3 +1,7 @@
+# Random Files #
+################
+*.eslintcache
+
 # Compiled source #
 ###################
 *.com
