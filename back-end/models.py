@@ -5,7 +5,6 @@ DATABASE = SqliteDatabase('sessions.sqlite');
 
 class Session(Model):
     room_name = CharField();
-    connected_users = IntegerField(default = 0, constraints = [Check(connected_users > -1)]);
     playlist = [
         {
             "username": TextField(),
@@ -46,6 +45,7 @@ class Session(Model):
         }
     ];
     created_at = DateTimeField(default = datetime.datetime.now);
+    created_at2 = DateTimeField(default = 0);
 
     class Meta:
         database = DATABASE;

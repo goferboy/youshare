@@ -15,6 +15,17 @@ def get_all_sessions():
     except models.DoesNotExist:
         return jsonify(data={}, status={"code": 401, "message": "Error"});
 
+@session.route('/<room>', methods=['GET'])
+def find_session(room):
+    try: 
+        found = models.Session.get_or_none(models.Session.room_name == room);
+        if found:
+            return jsonify(data=sessions, status={"code": 200, "message": f"Retrived Session Room {room}"});
+        else:
+            return jsonify(data={}, status={"code": 404, "message": f"Room {room!r} Not Found"});
+    except models.DoesNotExist:
+        return jsonify(data={}, status={"code": 401, "message": "Error"});
+
 @session.route('/', methods=['POST'])
 def create_sessions():
     payload = request.get_json();
