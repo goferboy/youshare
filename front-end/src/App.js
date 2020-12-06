@@ -11,6 +11,7 @@ class App extends Component {
     super(props);
     this.state = {
       username: '',
+      room: '',
       enteredRoom: false
     }
   }
@@ -20,7 +21,25 @@ class App extends Component {
     [event.target.name]: event.target.value
   });
   
-  join = () => {
+  joinRoom = () => {
+    //find room in database, if found, login and load room
+    try {
+      // socket.on('connect', () => {
+        socket.emit('connection', {username: this.state.username}, (res) => {
+          console.log(res);
+        });
+      // });
+      this.setState({
+        enteredRoom: true
+      })
+    }
+    catch(err) {
+      console.log(err)
+    }
+  };
+
+  createRoom = () => {
+    //create room name in database then log in 
     try {
       // socket.on('connect', () => {
         socket.emit('connection', {username: this.state.username}, (res) => {
@@ -51,7 +70,14 @@ class App extends Component {
                   onChange={this.handleChange} 
                   required 
                 />
-                <button onClick={this.join}>Submit Username</button>
+                <input 
+                  type="text" 
+                  name="room" 
+                  placeholder="Enter a name" 
+                  onChange={this.handleChange} 
+                  required 
+                />
+                <button onClick={this.joinRoom}>Submit Username</button>
               </div>
           }
         </div>
