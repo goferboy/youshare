@@ -49,9 +49,9 @@ class App extends Component {
     catch(err) {
       console.log(err);
     }
-    try {
+    try{
       // socket.on('connect', () => {
-        socket.emit('connection', {username: this.state.username}, (res) => {
+        socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
           console.log(res);
         });
       // });
@@ -82,7 +82,7 @@ class App extends Component {
                 <input 
                   type="text" 
                   name="room" 
-                  placeholder="Enter a name" 
+                  placeholder="Enter room name" 
                   onChange={this.handleChange} 
                   required 
                 />

@@ -34,42 +34,24 @@ def after_request(response):
     g.db.close();
     return response;
 
-connected_users = 0;
+# SOCKET ROUTES
 
 @socketio.on('connection')
 def on_connection(json):
-    global connected_users;
-    connected_users += 1;
-    print('received json: ' + str(json));
-    print('Connected Users: ' + str(connected_users));
+    join_room(json['room']);
+    print('User ' + str(json['username']) + " connected to room " + str(json['room']));
     return json;
-
-@socketio.on('disconnect')
-def on_disconnection():
-    global connected_users;
-    connected_users -= 1;
-    print('Connected Users: ' + str(connected_users));
 
 @socketio.on('playlist')
 def on_playlist(json):
+    print("its a hit for the playlist listener");
     emit('playlist', json, broadcast=True)
 
-
-# @socketio.on('join')
-# def on_join(data):
-#     username = data['username']
-#     room = data['room']
-#     join_room(room);
-#     print(data);
-#     emit('join', username + ' has entered the room.', room=room)
-
-# @socketio.on('leave')
-# def on_leave(data):
-#     username = data['username']
-#     room = data['room']
-#     leave_room(room);
-#     print(data);
-#     send(username + ' has left the room.', room=room)
+@socketio.on('player-state')
+def on_player_state(json):
+    print("its a hit for the player listener");
+    print(json);
+    emit('player-state', json, broadcast=True)
 
 if __name__ == '__main__':
     models.initialize();
