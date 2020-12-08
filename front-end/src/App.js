@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 //import { BrowserRouter as Router, Route, Link, Switch, } from 'react-router-dom';
 import './App.css';
-import PlayerWithSocket from './components/Player.jsx';
+import Player from './components/Player.jsx';
 
 const socket = io('http://localhost:8000');
 
@@ -11,6 +11,7 @@ class App extends Component {
     super(props);
     this.state = {
       username: '',
+      sessionID: '', 
       room: '',
       enteredRoom: false
     }
@@ -50,11 +51,12 @@ class App extends Component {
       console.log(err);
     }
     try{
-      // socket.on('connect', () => {
-        socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
-          console.log(res);
+      socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
+        console.log(res);
+        this.setState({
+          sessionID: res
         });
-      // });
+      });
       this.setState({
         enteredRoom: true
       })
@@ -69,7 +71,11 @@ class App extends Component {
         <div className="App">
           {
             this.state.enteredRoom
-            ? <PlayerWithSocket username={this.state.username} socket={socket}/>
+            ? <Player 
+              username={this.state.username}
+              sessionID = {this.state.sessionID} 
+              room = {this.state.room}
+              socket={socket}/>
             :
               <div className="sign-in">
                 <input 

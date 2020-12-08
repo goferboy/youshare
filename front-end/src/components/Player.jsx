@@ -32,16 +32,22 @@ class Player extends Component {
             });
         });
 
+        //listener for when video are puased or not
         this.props.socket.on('player-state', (res) => {
             console.log(res);
             this.setState({
                 playerState: res.playerState
             });
-            if (this.state.playerState == 1)
+            if (this.state.playerState === 1)
                 this.youTubeElem.playVideo();
-            else if (this.state.playerState == 2)
+            else if (this.state.playerState === 2)
                 this.youTubeElem.pauseVideo();
         });
+        
+        //figure out how to do this
+        this.props.socket.on('user-leaves', (res) => {
+            console.log(res);
+        })
     };
 
     onReady = (event) => {
@@ -49,7 +55,10 @@ class Player extends Component {
     }
 
     broadcastToQueue = (result) => {
-        this.props.socket.emit('playlist', {username: this.props.username, video: result});
+        this.props.socket.emit('playlist', {
+            username: this.props.username,
+            room: this.props.room, 
+            video: result});
     }
 
     nextVideo = (event) => {
@@ -73,31 +82,15 @@ class Player extends Component {
         };
     }
 
-    // playListener = (event) => {
-    //     this.props.socket.on('player-state', (res) => {
-    //         console.log(res);
-    //         if (this.state.playerState == YouTube.PlayerState.PAUSED)
-    //             this.props.socket.emit('player-state', {playerState: 2});
-    //         else if (this.state.playerState == YouTube.PlayerState.PLAYING)
-    //             this.props.socket.emit('player-state', {playerState: 1});
-    //         this.setState({
-    //             playerState: res.playerState
-    //         });
-    //         if (this.state.playerState === 1)
-    //             event.target.playVideo();
-    //         else if (this.state.playerState === 2)
-    //             event.target.pauseVideo();
-    //     });
-    // }
     playerStateHandler = (event) => {
         this.setState({
             playerState: event.target.getPlayerState()
         })
-        if (this.state.playerState == 2) {
-            this.props.socket.emit('player-state', {playerState: 2});
+        if (this.state.playerState === 2) {
+            this.props.socket.emit('player-state', {playerState: 2, room: this.props.room});
         }
-        else if (this.state.playerState == 1) {
-            this.props.socket.emit('player-state', {playerState: 1});
+        else if (this.state.playerState === 1) {
+            this.props.socket.emit('player-state', {playerState: 1, room: this.props.room});
         }
     }
     
