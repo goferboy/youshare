@@ -2,32 +2,26 @@ import React, { Component } from 'react';
 
 class Vote extends Component {
     constructor(props) {
-        super(props)
-        this.state = {
-            hasVoted: '',
-            negativeVotes: 0
-        }    
+        super(props) 
     }
 
     componentDidMount() {
         this.props.socket.on('voting', (res) => {
             console.log(res);
-            if (res)
+            if (res) {
                 this.props.nextVideo();
+            }
         });
     }
 
     voteButton = (event) => {
-        console.log(event.target.id);
-        console.log(this.props.currentUsers.length);
-        if (this.state.hasVoted !== event.target.id) {
-            if (this.state.hasVoted === 'thumbs-down')
+        console.log(this.props.hasVoted);
+        if (this.props.hasVoted !== event.target.id) {
+            if (this.props.hasVoted === 'thumbs-down')
                 this.props.socket.emit('voting', {room: this.props.room, negativeVotes: -1});
             if (event.target.id === 'thumbs-down')
                 this.props.socket.emit('voting', {room: this.props.room, negativeVotes: 1})
-            this.setState({
-                hasVoted: event.target.id
-            });
+            this.props.changeHasVoted(event.target.id);
         }
     }
 

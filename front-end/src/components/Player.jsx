@@ -17,7 +17,8 @@ class Player extends Component {
                     enablejsapi: 1
                 }
             },
-            playerState: 0
+            playerState: 0,
+            hasVoted: ''
         };
 
         //holds target for YouTube react element
@@ -48,19 +49,26 @@ class Player extends Component {
                 this.youTubeElem.pauseVideo();
         });
         
+        //updates current users state when someone joins
         this.props.socket.on('connection', (res) => {
             console.log(`User ${res.username} has joined`);
             this.props.connectedUsersChanged(res.connected_users);
         })
 
+        //listener for next video trigger
+        this.props.socket.on('next-video', (res) => {
+            if (res)
+                this.nextVideo();
+        })
+
         //figure out how to do this
         this.props.socket.on('user-leaves', (res) => {
-            console.log(res);
         })
     }
 
     onReady = (event) => {
         this.youTubeElem = event.target;
+        this.youTubeElem.playVideo();
     }
 
     broadcastToQueue = (result) => {
@@ -77,18 +85,16 @@ class Player extends Component {
         this.setState({
             queue: queueBuffer
         });
-        if (queueBuffer.length) {
-            this.youTubeElem.playVideo();
-            this.setState({
-                playerState: this.youTubeElem.getPlayerState()
-            })
-        }
-        else {
-            this.setState({
-                playerState: this.youTubeElem.getPlayerState()
-            })
-        };
+        this.setState({
+            hasVoted: ''
+        })
     }
+
+    changeHasVoted = (vote) => {
+        this.setState({
+            hasVoted: vote
+        })
+    };
 
     playerStateHandler = (event) => {
         this.setState({
@@ -100,6 +106,10 @@ class Player extends Component {
         else if (this.state.playerState === 1) {
             this.props.socket.emit('player-state', {playerState: 1, room: this.props.room});
         }
+    }
+
+    onEnd = () => {
+        this.props.socket.emit('next-video', {room: this.props.room});
     }
     
     onError = (event) => {
@@ -124,16 +134,17 @@ class Player extends Component {
                         videoId={currentVideoID}
                         opts={this.state.opts}
                         onReady={this.onReady}
-                        onEnd={this.nextVideo}
+                        onEnd={this.onEnd}
                         onError={this.onError}
                         onStateChange={this.playerStateHandler}
                     />
                     {
                         currentVideoID
                         ? <Vote 
-                            currentUsers={this.props.currentUsers}
                             room={this.props.room}
                             nextVideo={this.nextVideo}
+                            hasVoted={this.state.hasVoted}
+                            changeHasVoted={this.changeHasVoted}
                             socket={this.props.socket}/>
                         : <></>
                     }

@@ -53,7 +53,8 @@ def on_connection(json):
         new_room = {
                 "room_name": str(json['room']),
                 "connected_users": [user_dict],
-                "negative_votes": 0
+                "negative_votes": 0,
+                "ended_flags": 0
         }
         all_rooms.append(new_room);  
     else:
@@ -71,7 +72,7 @@ def on_connection(json):
                 all_rooms.append(new_room);
     pprint(all_rooms);
     pprint('**** User ' + str(json['username']) + " (sid: " + str(request.sid) + ") connected to room " + str(json['room']));
-    emit('connection', {"username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']}, room=json['room'])
+    emit('connection', {"username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']}, room=json['room']);
     return {"sessionID": request.sid, "username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']};
 
 @socketio.on('disconnect')
@@ -81,7 +82,9 @@ def on_disconnect():
         for i in range(0, len(room['connected_users'])):
             if room['connected_users'][i].get('sessionID') == request.sid:
                 del room['connected_users'][i];
-                break;
+                if len(room['connected_users']) == 0:
+                    del all_rooms[i];
+        break;
     pprint(all_rooms);
     pprint(str(request.sid) + ' has disconnected');
 
@@ -108,9 +111,25 @@ def on_voting(json):
             if room['negative_votes'] >= len(room['connected_users']) / 2:
                 skip = True;
                 room['negative_votes'] = 0;
+                room['ended_flags'] = 0;
         break;
-    
     emit('voting', skip, room=json['room']);
+
+@socketio.on('next-video')
+def on_next_video(json):
+    global all_rooms;
+    next = False;
+    for room in all_rooms:
+        if room['room_name'] == json['room']:
+            room['ended_flags'] += 1;
+            print(f"{room['ended_flags']} flags, must meet {len(room['connected_users'])}");
+            if room['ended_flags'] == len(room['connected_users']):
+                next = True;
+                room['ended_flags'] = 0;
+                room['negative_votes'] = 0;
+        break;
+    emit('next-video', next, room=json['room']);
+
 
 if __name__ == '__main__':
     models.initialize();
