@@ -43,6 +43,7 @@ all_rooms = [];
 @socketio.on('connection')
 def on_connection(json):
     global all_rooms;
+    room_index = 0;
     join_room(json['room']);
     user_dict = {
         "username": str(json['username']),
@@ -58,6 +59,7 @@ def on_connection(json):
         for i in range(0, len(all_rooms)):
             if all_rooms[i].get('room_name') == str(json['room']):
                 all_rooms[i]['connected_users'].append(user_dict);
+                room_index = i;
                 break;
             elif (i == len(all_rooms) - 1):
                 new_room = {
@@ -65,9 +67,9 @@ def on_connection(json):
                     "connected_users": [user_dict]
                 }
                 all_rooms.append(new_room);
-    pprint(all_rooms)
+    pprint(all_rooms);
     pprint('**** User ' + str(json['username']) + " (sid: " + str(request.sid) + ") connected to room " + str(json['room']));
-    return request.sid;
+    return {"sessionID": request.sid, "connected_users": all_rooms[room_index]['connected_users']};
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -83,17 +85,18 @@ def on_disconnect():
 @socketio.on('playlist')
 def on_playlist(json):
     pprint(json);
-    room = json['room'];
     print("its a hit for the playlist listener");
-    emit('playlist', json, room=room)
+    emit('playlist', json, room=json['room']);
 
 @socketio.on('player-state')
 def on_player_state(json):
     pprint(json);
-    room = json['room'];
     print("its a hit for the player listener");
-    print(json);
-    emit('player-state', json, room=room)
+    emit('player-state', json, room=json['room']);
+
+@socketio.on('voting')
+def on_voting(json):
+    emit('voting', json, room=json['room']);
 
 if __name__ == '__main__':
     models.initialize();

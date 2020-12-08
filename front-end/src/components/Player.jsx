@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Search from './Search.jsx';
+import Vote from './Vote.jsx';
 import YouTube from 'react-youtube';
 
 class Player extends Component {
@@ -23,6 +24,9 @@ class Player extends Component {
         //assigns value once onReady is triggered.
         this.youTubeElem = {};
         
+    };
+
+    componentDidMount() {
         //Listener for playlists added by all users via socket.io
         this.props.socket.on('playlist', (res) => {
             let queueBuffer = [...this.state.queue];
@@ -48,7 +52,7 @@ class Player extends Component {
         this.props.socket.on('user-leaves', (res) => {
             console.log(res);
         })
-    };
+    }
 
     onReady = (event) => {
         this.youTubeElem = event.target;
@@ -61,8 +65,7 @@ class Player extends Component {
             video: result});
     }
 
-    nextVideo = (event) => {
-        console.log(event);
+    nextVideo = () => {
         let queueBuffer = [...this.state.queue];
         queueBuffer = queueBuffer.slice(1);
         console.log(queueBuffer);
@@ -70,14 +73,14 @@ class Player extends Component {
             queue: queueBuffer
         });
         if (queueBuffer.length) {
-            event.target.playVideo();
+            this.youTubeElem.playVideo();
             this.setState({
-                playerState: event.target.getPlayerState()
+                playerState: this.youTubeElem.getPlayerState()
             })
         }
         else {
             this.setState({
-                playerState: event.target.getPlayerState()
+                playerState: this.youTubeElem.getPlayerState()
             })
         };
     }
@@ -98,7 +101,7 @@ class Player extends Component {
         console.log("Error loading video: " + event.data)
         this.nextVideo(event);
     }
-
+    
     render() {
         let currentVideoID;
         if (!this.state.queue.length) {
@@ -120,6 +123,15 @@ class Player extends Component {
                         onError={this.onError}
                         onStateChange={this.playerStateHandler}
                     />
+                    {
+                        currentVideoID
+                        ? <Vote 
+                            currentUsers={this.props.currentUsers}
+                            room={this.props.room}
+                            nextVideo={this.nextVideo}
+                            socket={this.props.socket}/>
+                        : <></>
+                    }
                 </div>
                 <div className="queue">
                     <ol>

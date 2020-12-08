@@ -13,7 +13,8 @@ class App extends Component {
       username: '',
       sessionID: '', 
       room: '',
-      enteredRoom: false
+      enteredRoom: false,
+      currentUsers: []
     }
   }
   
@@ -54,7 +55,8 @@ class App extends Component {
       socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
         console.log(res);
         this.setState({
-          sessionID: res
+          sessionID: res.sessionID,
+          currentUsers: res.connected_users
         });
       });
       this.setState({
@@ -71,10 +73,13 @@ class App extends Component {
         <div className="App">
           {
             this.state.enteredRoom
-            ? <Player 
+            ? 
+              <Player 
               username={this.state.username}
               sessionID = {this.state.sessionID} 
               room = {this.state.room}
+              videoIsLoaded = {this.videoIsLoaded}
+              currentUsers = {this.state.currentUsers}
               socket={socket}/>
             :
               <div className="sign-in">
