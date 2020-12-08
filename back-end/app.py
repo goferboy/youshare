@@ -52,7 +52,8 @@ def on_connection(json):
     if (len(all_rooms) == 0):
         new_room = {
                 "room_name": str(json['room']),
-                "connected_users": [user_dict]
+                "connected_users": [user_dict],
+                "negative_votes": 0
         }
         all_rooms.append(new_room);  
     else:
@@ -64,12 +65,14 @@ def on_connection(json):
             elif (i == len(all_rooms) - 1):
                 new_room = {
                     "room_name": str(json['room']),
-                    "connected_users": [user_dict]
+                    "connected_users": [user_dict],
+                    "negative_votes": 0
                 }
                 all_rooms.append(new_room);
     pprint(all_rooms);
     pprint('**** User ' + str(json['username']) + " (sid: " + str(request.sid) + ") connected to room " + str(json['room']));
-    return {"sessionID": request.sid, "connected_users": all_rooms[room_index]['connected_users']};
+    emit('connection', {"username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']}, room=json['room'])
+    return {"sessionID": request.sid, "username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']};
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -82,11 +85,11 @@ def on_disconnect():
     pprint(all_rooms);
     pprint(str(request.sid) + ' has disconnected');
 
-@socketio.on('playlist')
+@socketio.on('add-playlist')
 def on_playlist(json):
     pprint(json);
     print("its a hit for the playlist listener");
-    emit('playlist', json, room=json['room']);
+    emit('add-playlist', json, room=json['room']);
 
 @socketio.on('player-state')
 def on_player_state(json):
@@ -96,7 +99,18 @@ def on_player_state(json):
 
 @socketio.on('voting')
 def on_voting(json):
-    emit('voting', json, room=json['room']);
+    global all_rooms;
+    skip = False;
+    for room in all_rooms:
+        if room['room_name'] == json['room']:
+            room['negative_votes'] += json['negativeVotes'];
+            print(f"{room['negative_votes']} votes, must exceed vote of {len(room['connected_users']) / 2}");
+            if room['negative_votes'] >= len(room['connected_users']) / 2:
+                skip = True;
+                room['negative_votes'] = 0;
+        break;
+    
+    emit('voting', skip, room=json['room']);
 
 if __name__ == '__main__':
     models.initialize();

@@ -5,42 +5,30 @@ class Vote extends Component {
         super(props)
         this.state = {
             hasVoted: '',
-            numOfUsers: this.props.currentUsers.length,
-            negativeVotes: 0,
-        }
-        
+            negativeVotes: 0
+        }    
     }
 
     componentDidMount() {
         this.props.socket.on('voting', (res) => {
             console.log(res);
-            let negativeVotesBuffer = this.state.negativeVotes + res.negativeVotes;
-            this.setState({
-                negativeVotes: negativeVotesBuffer,
-            });
-            if (negativeVotesBuffer >= this.state.numOfUsers / 2) {
+            if (res)
                 this.props.nextVideo();
-                this.setState({
-                    hasVoted: '',
-                    negativeVotes: 0,
-                    numOfUsers: this.props.currentUsers.length
-                });
-            }
         });
     }
 
     voteButton = (event) => {
         console.log(event.target.id);
+        console.log(this.props.currentUsers.length);
         if (this.state.hasVoted !== event.target.id) {
-            if (event.target.id === 'thumbs-up')
-                this.props.socket.emit('voting', {room: this.props.room, negativeVotes: 0});
-            else
+            if (this.state.hasVoted === 'thumbs-down')
+                this.props.socket.emit('voting', {room: this.props.room, negativeVotes: -1});
+            if (event.target.id === 'thumbs-down')
                 this.props.socket.emit('voting', {room: this.props.room, negativeVotes: 1})
             this.setState({
                 hasVoted: event.target.id
             });
         }
-        // this.props.voteCheck(this.state.negativeVotes, this.state.totalVotes);
     }
 
     render() {

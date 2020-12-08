@@ -51,22 +51,22 @@ class App extends Component {
     catch(err) {
       console.log(err);
     }
-    try{
-      socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
-        console.log(res);
+    socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
+      if (res) {
         this.setState({
           sessionID: res.sessionID,
-          currentUsers: res.connected_users
+          currentUsers: res.connected_users,
+          enteredRoom: true
         });
-      });
-      this.setState({
-        enteredRoom: true
-      })
-    }
-    catch(err) {
-      console.log(err)
-    }
+      }
+    });
   };
+
+  connectedUsersChanged = (connectedUsers) => {
+    this.setState({
+      currentUsers: connectedUsers
+    });
+  }
 
   render() {
     return (
@@ -80,6 +80,7 @@ class App extends Component {
               room = {this.state.room}
               videoIsLoaded = {this.videoIsLoaded}
               currentUsers = {this.state.currentUsers}
+              connectedUsersChanged={this.connectedUsersChanged}
               socket={socket}/>
             :
               <div className="sign-in">

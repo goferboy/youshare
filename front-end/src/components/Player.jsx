@@ -28,7 +28,7 @@ class Player extends Component {
 
     componentDidMount() {
         //Listener for playlists added by all users via socket.io
-        this.props.socket.on('playlist', (res) => {
+        this.props.socket.on('add-playlist', (res) => {
             let queueBuffer = [...this.state.queue];
             queueBuffer.push(res);
             this.setState({
@@ -36,7 +36,7 @@ class Player extends Component {
             });
         });
 
-        //listener for when video are puased or not
+        //listener for when video are paused or not
         this.props.socket.on('player-state', (res) => {
             console.log(res);
             this.setState({
@@ -48,6 +48,11 @@ class Player extends Component {
                 this.youTubeElem.pauseVideo();
         });
         
+        this.props.socket.on('connection', (res) => {
+            console.log(`User ${res.username} has joined`);
+            this.props.connectedUsersChanged(res.connected_users);
+        })
+
         //figure out how to do this
         this.props.socket.on('user-leaves', (res) => {
             console.log(res);
@@ -59,7 +64,7 @@ class Player extends Component {
     }
 
     broadcastToQueue = (result) => {
-        this.props.socket.emit('playlist', {
+        this.props.socket.emit('add-playlist', {
             username: this.props.username,
             room: this.props.room, 
             video: result});

@@ -45,7 +45,7 @@ class Search extends Component {
                                         <li>
                                             <img src={result.snippet.thumbnails.default.url} />
                                             <p>{result.snippet.title}</p>
-                                            <button display='inherit' onClick={() => this.props.addToQueue(result)}>+</button>
+                                            <button onClick={() => this.props.addToQueue(result)}>+</button>
                                         </li>
                                     </div>
                                 );
