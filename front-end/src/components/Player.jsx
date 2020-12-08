@@ -17,8 +17,8 @@ class Player extends Component {
                     enablejsapi: 1
                 }
             },
-            playerState: 0,
-            hasVoted: ''
+            hasVoted: '',
+            nextVideoFlag: true
         };
 
         //holds target for YouTube react element
@@ -40,12 +40,9 @@ class Player extends Component {
         //listener for when video are paused or not
         this.props.socket.on('player-state', (res) => {
             console.log(res);
-            this.setState({
-                playerState: res.playerState
-            });
-            if (this.state.playerState === 1)
+            if (res.playerState === 1)
                 this.youTubeElem.playVideo();
-            else if (this.state.playerState === 2)
+            else if (res.playerState === 2)
                 this.youTubeElem.pauseVideo();
         });
         
@@ -68,7 +65,7 @@ class Player extends Component {
 
     onReady = (event) => {
         this.youTubeElem = event.target;
-        this.youTubeElem.playVideo();
+        this.youTubeElem.stopVideo();
     }
 
     broadcastToQueue = (result) => {
@@ -83,11 +80,12 @@ class Player extends Component {
         queueBuffer = queueBuffer.slice(1);
         console.log(queueBuffer);
         this.setState({
-            queue: queueBuffer
+            queue: queueBuffer,
+            hasVoted: '',
+            nextVideoFlag: true
         });
-        this.setState({
-            hasVoted: ''
-        })
+        if (queueBuffer.length)
+            this.youTubeElem.playVideo();
     }
 
     changeHasVoted = (vote) => {
@@ -97,13 +95,13 @@ class Player extends Component {
     };
 
     playerStateHandler = (event) => {
-        this.setState({
-            playerState: event.target.getPlayerState()
-        })
-        if (this.state.playerState === 2) {
+        console.log(event.target.getPlayerState());
+        if (event.target.getPlayerState() === -1 && this.state.queue.length)
+            this.youTubeElem.playVideo();
+        if (event.target.getPlayerState() === 2) {
             this.props.socket.emit('player-state', {playerState: 2, room: this.props.room});
         }
-        else if (this.state.playerState === 1) {
+        else if (event.target.getPlayerState()  === 1) {
             this.props.socket.emit('player-state', {playerState: 1, room: this.props.room});
         }
     }
@@ -114,7 +112,7 @@ class Player extends Component {
     
     onError = (event) => {
         console.log("Error loading video: " + event.data)
-        this.nextVideo(event);
+        this.nextVideo();
     }
     
     render() {

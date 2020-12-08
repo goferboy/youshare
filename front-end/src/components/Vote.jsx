@@ -2,18 +2,21 @@ import React, { Component } from 'react';
 
 class Vote extends Component {
     constructor(props) {
-        super(props) 
+        super(props)
     }
 
     componentDidMount() {
         this.props.socket.on('voting', (res) => {
-            console.log(res);
+            console.log("is it " + res);
             if (res) {
                 this.props.nextVideo();
-            }
+            };
         });
     }
 
+    componentWillUnmount() {
+        this.props.socket.off('voting')
+    }
     voteButton = (event) => {
         console.log(this.props.hasVoted);
         if (this.props.hasVoted !== event.target.id) {

@@ -102,6 +102,7 @@ def on_player_state(json):
 
 @socketio.on('voting')
 def on_voting(json):
+    print("voting triggered");
     global all_rooms;
     skip = False;
     for room in all_rooms:
@@ -112,8 +113,8 @@ def on_voting(json):
                 skip = True;
                 room['negative_votes'] = 0;
                 room['ended_flags'] = 0;
+                emit('voting', skip, room=json['room']);
         break;
-    emit('voting', skip, room=json['room']);
 
 @socketio.on('next-video')
 def on_next_video(json):
@@ -127,8 +128,8 @@ def on_next_video(json):
                 next = True;
                 room['ended_flags'] = 0;
                 room['negative_votes'] = 0;
+                emit('next-video', next, room=json['room']);
         break;
-    emit('next-video', next, room=json['room']);
 
 
 if __name__ == '__main__':
