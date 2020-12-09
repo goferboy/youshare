@@ -19,7 +19,8 @@ class Player extends Component {
                 }
             },
             hasVoted: '',
-            playerState: -1
+            playerState: -1,
+            errorVid: null
         };
 
         //holds target for YouTube react element
@@ -78,9 +79,8 @@ class Player extends Component {
                 this.youTubeElem.pauseVideo();
         });
         
-        //updates current users state when someone joins
+        //updates current users state when someone joins or leaves
         this.props.socket.on('connection', (res) => {
-            console.log(`User ${res.username} has joined`);
             this.props.connectedUsersChanged(res.connected_users);
         })
 
@@ -92,8 +92,11 @@ class Player extends Component {
             console.log("finished next-video from socketio");
         })
 
-        //figure out how to do this
-        this.props.socket.on('user-leaves', (res) => {
+        //listener for force next video trigger
+        this.props.socket.on('force-next-video', (res) => {
+            console.log('A User Have Reached An Error ' + res.error)
+            if (res)
+                this.onEnd();
         })
     }
 
@@ -132,10 +135,30 @@ class Player extends Component {
             queue: queueBuffer,
             hasVoted: ''
         });
-        if (queueBuffer.length)
+        try{
+            fetch('http://localhost:8000/api/sessions/' + this.props.room + '/nextVideo', {
+                method: 'DELETE'
+            }).then((res) => {
+                return res.json();
+            }).then((data) => {
+                console.log(data);
+            }).catch((err) => {console.error({'Error': err})});
+        } catch(err){ console.log(err) }
+        if (queueBuffer.length) {
             this.youTubeElem.playVideo();
-        else
+            console.log(queueBuffer[0].video)
+            this.props.socket.emit('current-video', {
+                video: queueBuffer[0].video.id.videoId,
+                room: this.props.room
+            });
+        }
+        else {
             this.youTubeElem.stopVideo();
+            this.props.socket.emit('current-video', {
+                video: {},
+                room: this.props.room
+            });
+        }
         console.log("finished nextVideo()");
     }
 
@@ -152,8 +175,8 @@ class Player extends Component {
     }
     
     onError = (event) => {
-        console.log("Error loading video: " + event.data)
-        this.nextVideo();
+        console.log("ERROR Loading Video, Code " + event.data)
+        this.props.socket.emit('force-next-video', {room: this.props.room, currentVid: this.state.queue[0].video.id.videoId})
     }
     
     playPause = () => {
@@ -173,7 +196,7 @@ class Player extends Component {
     onStateChange = (event) => {
         this.setState({
             playerState: event.target.getPlayerState()
-        })
+        });
     }
 
     render() {
