@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Search from './Search.jsx';
 import Vote from './Vote.jsx';
 import YouTube from 'react-youtube';
+import './Player.css';
 
 class Player extends Component {
     constructor(props) {
@@ -18,7 +19,7 @@ class Player extends Component {
                 }
             },
             hasVoted: '',
-            nextVideoFlag: true
+            playerState: -1
         };
 
         //holds target for YouTube react element
@@ -28,13 +29,44 @@ class Player extends Component {
     };
 
     componentDidMount() {
+        //see if a saved playlist is there and load it into the queue
+        //if no room is found, create it.
+        try{
+            fetch('http://localhost:8000/api/sessions/' + this.props.room).then((res) => {
+                return res.json();
+            }).then((result) => {
+                if (result.status.code === 200) {
+                    this.setState({
+                        queue: result.data.playlist
+                    })
+                }
+                if (result.status.code === 404) {
+                    fetch('http://localhost:8000/api/sessions/', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            room_name: this.props.room
+                        }),
+                        headers: {'Content-Type': 'application/json'}
+                    }).then((res) => {
+                        return res.json();
+                    }).then((data) => {
+                        console.log(data);
+                    }).catch((err) => {console.error({'Error': err})});
+                }
+            }).catch((err) => {console.error({'Error': err})});
+        } catch(err) {
+            console.log(err);
+        }
+
         //Listener for playlists added by all users via socket.io
         this.props.socket.on('add-playlist', (res) => {
+            console.log("receiving video to queue");
             let queueBuffer = [...this.state.queue];
             queueBuffer.push(res);
             this.setState({
                 queue: queueBuffer
             });
+            console.log("finished receiving video to queue");
         });
 
         //listener for when video are paused or not
@@ -54,8 +86,10 @@ class Player extends Component {
 
         //listener for next video trigger
         this.props.socket.on('next-video', (res) => {
+            console.log("received next-video from socketio");
             if (res)
                 this.nextVideo();
+            console.log("finished next-video from socketio");
         })
 
         //figure out how to do this
@@ -72,20 +106,37 @@ class Player extends Component {
         this.props.socket.emit('add-playlist', {
             username: this.props.username,
             room: this.props.room, 
-            video: result});
+            video: result}
+        );
+        try{
+            fetch('http://localhost:8000/api/sessions/' + this.props.room, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    video: result
+                }),
+                headers: {'Content-Type': 'application/json'}
+            }).then((res) => {
+                return res.json();
+            }).then((data) => {
+                console.log(data);
+            }).catch((err) => {console.error({'Error': err})});
+        } catch(err){ console.log(err) }
     }
 
     nextVideo = () => {
+        console.log("starting nextVideo()");
         let queueBuffer = [...this.state.queue];
         queueBuffer = queueBuffer.slice(1);
         console.log(queueBuffer);
         this.setState({
             queue: queueBuffer,
-            hasVoted: '',
-            nextVideoFlag: true
+            hasVoted: ''
         });
         if (queueBuffer.length)
             this.youTubeElem.playVideo();
+        else
+            this.youTubeElem.stopVideo();
+        console.log("finished nextVideo()");
     }
 
     changeHasVoted = (vote) => {
@@ -94,20 +145,10 @@ class Player extends Component {
         })
     };
 
-    playerStateHandler = (event) => {
-        console.log(event.target.getPlayerState());
-        if (event.target.getPlayerState() === -1 && this.state.queue.length)
-            this.youTubeElem.playVideo();
-        if (event.target.getPlayerState() === 2) {
-            this.props.socket.emit('player-state', {playerState: 2, room: this.props.room});
-        }
-        else if (event.target.getPlayerState()  === 1) {
-            this.props.socket.emit('player-state', {playerState: 1, room: this.props.room});
-        }
-    }
-
     onEnd = () => {
+        console.log("onEnd() begins - send to socket io");
         this.props.socket.emit('next-video', {room: this.props.room});
+        console.log("onEnd() ends");
     }
     
     onError = (event) => {
@@ -115,6 +156,26 @@ class Player extends Component {
         this.nextVideo();
     }
     
+    playPause = () => {
+        if (this.state.playerState === 1)
+            this.props.socket.emit('player-state', {
+                playerState: 2,
+                room: this.props.room
+            })
+        else if (this.state.playerState === 2) {
+            this.props.socket.emit('player-state', {
+                playerState: 1,
+                room: this.props.room
+            })
+        }
+    }
+
+    onStateChange = (event) => {
+        this.setState({
+            playerState: event.target.getPlayerState()
+        })
+    }
+
     render() {
         let currentVideoID;
         if (!this.state.queue.length) {
@@ -132,10 +193,15 @@ class Player extends Component {
                         videoId={currentVideoID}
                         opts={this.state.opts}
                         onReady={this.onReady}
+                        onStateChange={this.onStateChange}
                         onEnd={this.onEnd}
                         onError={this.onError}
-                        onStateChange={this.playerStateHandler}
                     />
+                    {
+                        currentVideoID
+                        ? <button type="button" onClick={this.playPause}>Play/Pause</button>
+                        : <></>
+                    }
                     {
                         currentVideoID
                         ? <Vote 

@@ -24,33 +24,6 @@ class App extends Component {
   });
   
   joinRoom = () => {
-    //find room in database, if found, login and load room
-    console.log(this.state.room);
-    try{
-      fetch('http://localhost:8000/api/sessions/' + this.state.room).then(
-        (res) => {
-          return res.json();
-        }
-      ).then((result) => {
-        console.log(result);
-        if (result.status.code === 404) {
-          fetch('http://localhost:8000/api/sessions/', {
-            method: 'POST',
-            body: JSON.stringify({
-              room_name: this.state.room
-            }),
-            headers: {'Content-Type': 'application/json'}
-          }).then((res) => {
-            return res.json();
-          }).then((data) => {
-            console.log(data);
-          }).catch((err) => {console.error({'Error': err})});
-        }
-      }).catch((err) => {console.error({'Error': err})});
-     }
-    catch(err) {
-      console.log(err);
-    }
     socket.emit('connection', {username: this.state.username, room: this.state.room}, (res) => {
       if (res) {
         this.setState({

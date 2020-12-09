@@ -4,7 +4,6 @@ import datetime;
 DATABASE = SqliteDatabase('sessions.sqlite');
 
 class Session(Model):
-    connected_users = IntegerField(default = 0);
     room_name = CharField();
     playlist = [
         {

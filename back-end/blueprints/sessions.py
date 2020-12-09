@@ -34,3 +34,11 @@ def create_sessions():
     session = models.Session.create(**payload);
     sess_to_dict = model_to_dict(session);
     return jsonify(data=sess_to_dict, status={"code": 201, "message": "Session Created"});
+
+# UPDATE route
+# @session.route('/<room>', methods=["PUT"])
+# def add_video(id):
+#     payload = request.get_json();
+#     dog = models.Dog.update(**payload).where(models.Dog.id == id);
+#     dog.execute();
+#     return jsonify(data=model_to_dict(models.Dog.get_by_id(id)), status={"code": "200", "message": "yo updated dog"});
