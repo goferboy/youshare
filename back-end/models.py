@@ -1,49 +1,12 @@
 from peewee import *;
+from playhouse.sqlite_ext import JSONField;
 import datetime;
 
 DATABASE = SqliteDatabase('sessions.sqlite');
 
 class Session(Model):
-    room_name = CharField();
-    playlist = [
-        {
-            "username": TextField(),
-            "video": {
-                "kind": TextField(),
-                "etag": TextField(),
-                "id": {
-                    "kind": TextField(),
-                    "videoId": TextField()
-                },
-                "snippet": {
-                    "publishedAt": TextField(),
-                    "channelId": TextField(),
-                    "title": TextField(),
-                    "description": TextField(),
-                    "thumbnails": {
-                        "default": {
-                            "url": TextField(),
-                            "width": IntegerField(),
-                            "height": IntegerField()
-                        },
-                        "medium": {
-                            "url": TextField(),
-                            "width": IntegerField(),
-                            "height": IntegerField()
-                        },
-                        "high": {
-                            "url": TextField(),
-                            "width": IntegerField(),
-                            "height": IntegerField()
-                        }
-                    },
-                    "channelTitle": TextField(),
-                    "liveBroadcastContent": TextField(),
-                    "publishTime": TextField()
-                }
-            }
-        }
-    ];
+    room_name = CharField(unique = True);
+    playlist = JSONField(null= True);
     created_at = DateTimeField(default = datetime.datetime.now);
 
     class Meta:

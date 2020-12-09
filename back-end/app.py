@@ -134,4 +134,5 @@ def on_next_video(json):
 
 if __name__ == '__main__':
     models.initialize();
-    socketio.run(app, debug=DEBUG, port=PORT);
+    app.run(debug=DEBUG, port=PORT)
+    socketio.run(app);
