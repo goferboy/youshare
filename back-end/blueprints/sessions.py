@@ -69,8 +69,40 @@ def add_video(room):
             pprint(session);
             update = models.Session.update(**session).where(models.Session.room_name == room);
             update.execute();
-            return jsonify(data=model_to_dict(models.Session.get(models.Session.room_name == room)), status={"code": 200, "message": f"Added video to playlist in {room}"});
+            return jsonify(
+                data=model_to_dict(models.Session.get(models.Session.room_name == room)), 
+                status={"code": 200, "message": f"Added video to playlist in {room}"});
         else:
-            return jsonify(data={}, status={"code": 404, "message": f"Room {room!r} Not Found"});
+            return jsonify(
+                data={}, 
+                status={"code": 404, "message": f"Room {room!r} Not Found"});
     except models.DoesNotExist:
-        return jsonify(data={}, status={"code": 401, "message": "Error"});
+        return jsonify(
+            data={}, 
+            status={"code": 401, "message": "Error"});
+
+# Delete a video from the playlist
+@session.route('/<room>/nextVideo', methods=['DELETE'])
+def remove_video(room):
+    payload = request.get_json();
+    pprint(payload);
+    try: 
+        found = models.Session.get_or_none(models.Session.room_name == room);
+        if found:
+            session = model_to_dict(models.Session.get(models.Session.room_name == room));
+            pprint(session)
+            session['playlist'].pop(0);
+            pprint(session);
+            update = models.Session.update(**session).where(models.Session.room_name == room);
+            update.execute();
+            return jsonify(
+                data=model_to_dict(models.Session.get(models.Session.room_name == room)), 
+                status={"code": 200, "message": f"Removed video from playlist in {room}"});
+        else:
+            return jsonify(
+                data={}, 
+                status={"code": 404, "message": f"Room {room!r} Not Found"});
+    except models.DoesNotExist:
+        return jsonify(
+            data={}, 
+            status={"code": 401, "message": "Error"});
