@@ -23,7 +23,9 @@ def find_session(room):
         found = models.Session.get_or_none(models.Session.room_name == room);
         if found:
             session = model_to_dict(models.Session.get(models.Session.room_name == room));
-            return jsonify(data=session, status={"code": 200, "message": f"Retrived Session Room {room}"});
+            return jsonify(
+                data=session, 
+                status={"code": 200, "message": f"Retrived Session Room {room}"});
         else:
             return jsonify(data={}, status={"code": 404, "message": f"Room {room!r} Not Found"});
     except models.DoesNotExist:
@@ -33,10 +35,25 @@ def find_session(room):
 @session.route('/', methods=['POST'])
 def create_sessions():
     payload = request.get_json();
-    pprint(type(payload), 'payload');
+    print(payload, 'payload');
     session = models.Session.create(**payload);
     sess_to_dict = model_to_dict(session);
     return jsonify(data=sess_to_dict, status={"code": 201, "message": "Session Created"});
+
+# Delete a room
+@session.route('/<room>', methods=['DELETE'])
+def delete_session(room):
+    session = models.Session.delete().where(models.Session.room_name == room);
+    num_of_rows_deleted = session.execute();
+    pprint(num_of_rows_deleted);
+    if num_of_rows_deleted:
+        return jsonify(
+            data={},
+            status={"code": "200", "message": "Successfully Deleted Room"});
+    else:
+        return jsonify(
+            data={}, 
+            status={"code": 401, "message": "Error"});
 
 # Add A Video To The Playlist
 @session.route('/<room>', methods=["PUT"])
