@@ -1,13 +1,11 @@
-import models;
-
 from flask import Blueprint, jsonify, request;
-
 from playhouse.shortcuts import model_to_dict;
-
+import models;
 from pprint import pprint;
 
 session = Blueprint('sessions', 'session');
 
+# GET to return all rooms
 @session.route('/', methods=['GET'])
 def get_all_sessions():
     try:
@@ -17,6 +15,7 @@ def get_all_sessions():
     except models.DoesNotExist:
         return jsonify(data={}, status={"code": 401, "message": "Error"});
 
+# GET to return specifically only specified room
 @session.route('/<room>', methods=['GET'])
 def find_session(room):
     try: 

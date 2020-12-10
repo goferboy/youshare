@@ -14,6 +14,7 @@ class Vote extends Component {
         });
     }
 
+    //prevents multiple listeners from propagating when component is constructed
     componentWillUnmount() {
         this.props.socket.off('voting')
     }

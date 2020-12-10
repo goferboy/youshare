@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
-//import { BrowserRouter as Router, Route, Link, Switch, } from 'react-router-dom';
 import './App.css';
 import Player from './components/Player.jsx';
 
-const socket = io('http://localhost:8000');
+//declared globally to allow access throughout scope
+const socket = io(process.env.REACT_APP_BASE_URL);
 
 class App extends Component {
   constructor(props) {

@@ -15,7 +15,8 @@ class Player extends Component {
                 playerVars: {
                     autoplay: 1,
                     controls: 0,
-                    enablejsapi: 1
+                    enablejsapi: 1,
+                    disablekb: 1
                 }
             },
             hasVoted: '',
@@ -32,7 +33,7 @@ class Player extends Component {
         //see if a saved playlist is there and load it into the queue
         //if no room is found, create it.
         try{
-            fetch('http://localhost:8000/api/sessions/' + this.props.room).then((res) => {
+            fetch(process.env.REACT_APP_BASE_URL + '/api/sessions/' + this.props.room).then((res) => {
                 return res.json();
             }).then((result) => {
                 if (result.status.code === 200) {
@@ -41,7 +42,7 @@ class Player extends Component {
                     })
                 }
                 if (result.status.code === 404) {
-                    fetch('http://localhost:8000/api/sessions/', {
+                    fetch(process.env.REACT_APP_BASE_URL + '/api/sessions/', {
                         method: 'POST',
                         body: JSON.stringify({
                             room_name: this.props.room,
@@ -112,7 +113,7 @@ class Player extends Component {
             video: result}
         );
         try{
-            fetch('http://localhost:8000/api/sessions/' + this.props.room, {
+            fetch(process.env.REACT_APP_BASE_URL + '/api/sessions/', + this.props.room, {
                 method: 'PUT',
                 body: JSON.stringify({
                     video: result
@@ -136,7 +137,7 @@ class Player extends Component {
             hasVoted: ''
         });
         try{
-            fetch('http://localhost:8000/api/sessions/' + this.props.room + '/nextVideo', {
+            fetch(process.env.REACT_APP_BASE_URL + '/api/sessions/', + this.props.room + '/nextVideo', {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
