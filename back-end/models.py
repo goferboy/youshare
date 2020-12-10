@@ -1,8 +1,14 @@
 from peewee import *;
 from playhouse.sqlite_ext import JSONField;
+from playhouse.db_url import connect
+import os;
+
 import datetime;
 
-DATABASE = SqliteDatabase('sessions.sqlite');
+if 'ON_HEROKU' in os.environ:
+    DATABASE = connect(os.environ.get('DATABASE_URL'));
+else:
+    DATABASE = SqliteDatabase('sessions.sqlite');
 
 class Session(Model):
     room_name = CharField(unique = True);
