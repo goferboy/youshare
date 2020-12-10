@@ -4,6 +4,7 @@ from flask_cors import CORS;
 from playhouse.shortcuts import model_to_dict;
 from flask_socketio import SocketIO, send, emit, join_room, leave_room, rooms;
 from pprint import pprint;
+import time;
 
 import models;
 from blueprints.sessions import session;
@@ -46,11 +47,8 @@ def room_dict(room, user):
         "negative_votes": 0,
         "ended_flags": 0,
         "ready_flags": 0,
-        "error_flag": False,
-        "current_vid": {
-            "id": "none",
-            "has_error": False
-        }
+        "buffer_flags": 0,
+        "error": False
     }
     return room_dict_filled
 
@@ -58,11 +56,8 @@ def reinit_votes_flags(room):
     room['negative_votes'] = 0;
     room['ended_flags'] = 0;
     room['ready_flags'] = 0;
-    room['error_flag'] = False;
-    room['current_vid'] = {
-            "id": "none",
-            "has_error": False
-        };
+    room['buffer_flags'] = 0;
+    room['error'] = False;
 
 @socketio.on('connection')
 def on_connection(json):
@@ -85,8 +80,8 @@ def on_connection(json):
             elif (i == len(all_rooms) - 1):
                 new_room = room_dict(str(json['room']), user_dict);
                 all_rooms.append(new_room);
-    pprint(all_rooms);
-    pprint('**** User ' + str(json['username']) + " (sid: " + str(request.sid) + ") connected to room " + str(json['room']));
+    #pprint(all_rooms);
+    #pprint('**** User ' + str(json['username']) + " (sid: " + str(request.sid) + ") connected to room " + str(json['room']));
     emit('connection', {"username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']}, room=json['room']);
     return {"sessionID": request.sid, "username": str(json['username']), "connected_users": all_rooms[room_index]['connected_users']};
 
@@ -100,38 +95,30 @@ def on_disconnect():
                 if len(room['connected_users']) == 0:
                     del all_rooms[i];
         break;
-    pprint(all_rooms);
-    pprint(str(request.sid) + ' has disconnected');
+    #pprint(all_rooms);
+    #pprint(str(request.sid) + ' has disconnected');
 
 @socketio.on('add-playlist')
 def on_playlist(json):
-    pprint(json);
-    print("its a hit for the playlist listener");
+    #pprint(json);
+    #print("its a hit for the playlist listener");
     emit('add-playlist', json, room=json['room']);
-
-@socketio.on('current-video')
-def on_current_video(json):
-    for room in all_rooms:
-        pprint(room['current_vid'])
-        if room['room_name'] == json['room']:
-            room['current_vid'] = json['video'];
-            pprint(room['current_vid'])
 
 @socketio.on('player-state')
 def on_player_state(json):
-    pprint(json);
-    print("its a hit for the player listener");
+    #pprint(json);
+    #print("its a hit for the player listener");
     emit('player-state', json, room=json['room']);
 
 @socketio.on('voting')
 def on_voting(json):
-    print("voting triggered");
+    #print("voting triggered");
     global all_rooms;
     skip = False;
     for room in all_rooms:
         if room['room_name'] == json['room']:
             room['negative_votes'] += json['negativeVotes'];
-            print(f"{room['negative_votes']} votes, must exceed vote of {len(room['connected_users']) / 2}");
+            #print(f"{room['negative_votes']} votes, must exceed vote of {len(room['connected_users']) / 2}");
             if room['negative_votes'] >= len(room['connected_users']) / 2:
                 skip = True;
                 reinit_votes_flags(room);
@@ -145,9 +132,9 @@ def on_next_video(json):
     for room in all_rooms:
         if room['room_name'] == json['room']:
             room['ended_flags'] += 1;
-            print(f"{room['ended_flags']} flags, must meet {len(room['connected_users'])}");
+            #print(f"{room['ended_flags']} flags, must meet {len(room['connected_users'])}");
             if room['ended_flags'] == len(room['connected_users']):
-                print("condition met");
+                #print("condition met");
                 next_video = True;
                 reinit_votes_flags(room);
                 emit('next-video', next_video, room=json['room']);
@@ -155,15 +142,23 @@ def on_next_video(json):
 
 # Force Next Video
 # To Be Used when a user may encounter error 150
-@socketio.on('force-next-video')
-def on_ready(json):
+@socketio.on('buffer-states')
+def on_buffer_states(json):
     global all_rooms;
-    pprint(json['currentVid']);
+    print("buffer state triggered");
     for room in all_rooms:
-        print(room['current_vid'] == json['currentVid']);
-        room['current_vid'];
-        if room['room_name'] == json['room'] and room['current_vid'] == json['currentVid']:
-            emit('force-next-video', json, room=json['room']);
+        if room['room_name'] == json['room']:
+            room['buffer_flags'] += 1;
+            print("Flags so far: " + str(room['buffer_flags']) + " out of " + str(len(room['connected_users'])));
+            if json['error']:
+                room['error'] = True;
+                print(f"error state is now {room['error']}")
+            if room['buffer_flags'] >= len(room['connected_users']):
+                if room['error'] == True:
+                    print("force-next-video sent");
+                    emit('force-next-video', json, room=json['room']);
+                # reinit_votes_flags(room);
+            break;
 
 if __name__ == '__main__':
     models.initialize();

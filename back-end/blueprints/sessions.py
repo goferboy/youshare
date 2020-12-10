@@ -45,7 +45,7 @@ def create_sessions():
 def delete_session(room):
     session = models.Session.delete().where(models.Session.room_name == room);
     num_of_rows_deleted = session.execute();
-    pprint(num_of_rows_deleted);
+    #pprint(num_of_rows_deleted);
     if num_of_rows_deleted:
         return jsonify(
             data={},
@@ -59,14 +59,14 @@ def delete_session(room):
 @session.route('/<room>', methods=["PUT"])
 def add_video(room):
     payload = request.get_json();
-    pprint(payload);
+    #pprint(payload);
     try: 
         found = models.Session.get_or_none(models.Session.room_name == room);
         if found:
             session = model_to_dict(models.Session.get(models.Session.room_name == room));
-            pprint(session)
+            #pprint(session)
             session['playlist'].append(payload);
-            pprint(session);
+            #pprint(session);
             update = models.Session.update(**session).where(models.Session.room_name == room);
             update.execute();
             return jsonify(
@@ -85,16 +85,17 @@ def add_video(room):
 @session.route('/<room>/nextVideo', methods=['DELETE'])
 def remove_video(room):
     payload = request.get_json();
-    pprint(payload);
+    #pprint(payload);
     try: 
         found = models.Session.get_or_none(models.Session.room_name == room);
         if found:
             session = model_to_dict(models.Session.get(models.Session.room_name == room));
-            pprint(session)
-            session['playlist'].pop(0);
-            pprint(session);
-            update = models.Session.update(**session).where(models.Session.room_name == room);
-            update.execute();
+            #pprint(session)
+            if session['playlist'][0]:
+                session['playlist'].pop(0);
+                #pprint(session);
+                update = models.Session.update(**session).where(models.Session.room_name == room);
+                update.execute();
             return jsonify(
                 data=model_to_dict(models.Session.get(models.Session.room_name == room)), 
                 status={"code": 200, "message": f"Removed video from playlist in {room}"});

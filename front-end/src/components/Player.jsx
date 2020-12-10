@@ -20,7 +20,6 @@ class Player extends Component {
             },
             hasVoted: '',
             playerState: -1,
-            errorVid: null
         };
 
         //holds target for YouTube react element
@@ -45,7 +44,8 @@ class Player extends Component {
                     fetch('http://localhost:8000/api/sessions/', {
                         method: 'POST',
                         body: JSON.stringify({
-                            room_name: this.props.room
+                            room_name: this.props.room,
+                            playlist: []
                         }),
                         headers: {'Content-Type': 'application/json'}
                     }).then((res) => {
@@ -145,7 +145,7 @@ class Player extends Component {
             }).catch((err) => {console.error({'Error': err})});
         } catch(err){ console.log(err) }
         if (queueBuffer.length) {
-            this.youTubeElem.playVideo();
+            // this.youTubeElem.playVideo();
             console.log(queueBuffer[0].video)
             this.props.socket.emit('current-video', {
                 video: queueBuffer[0].video.id.videoId,
@@ -176,7 +176,7 @@ class Player extends Component {
     
     onError = (event) => {
         console.log("ERROR Loading Video, Code " + event.data)
-        this.props.socket.emit('force-next-video', {room: this.props.room, currentVid: this.state.queue[0].video.id.videoId})
+        this.props.socket.emit('buffer-states', {room: this.props.room, error: true})
     }
     
     playPause = () => {
@@ -194,6 +194,9 @@ class Player extends Component {
     }
 
     onStateChange = (event) => {
+        if (this.state.playerState === 3 && event.target.getPlayerState() === 1) 
+            this.props.socket.emit('buffer-states', {room: this.props.room, error: false})
+        console.log(event.target.getPlayerState());
         this.setState({
             playerState: event.target.getPlayerState()
         });
